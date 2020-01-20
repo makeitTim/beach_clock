@@ -37,8 +37,8 @@ class _BeachClockState extends State<BeachClock> with SingleTickerProviderStateM
   final Color kCloudRedColor = Color.fromRGBO(233, 65, 60, 1.0);
   final Color kPalmsDayColor = Color.fromRGBO(38, 34, 97, 1.0);
   final Color kPalmsNightColor = Color.fromRGBO(48, 32, 53, 1.0);
-  final Color kTimeDayColor = Color.fromRGBO(199, 255, 217, 0.6);
-  final Color kTimeNightColor = Color.fromRGBO(249, 236, 183, 0.6);
+  final Color kTimeDayColor = Color.fromRGBO(199, 255, 217, 0.4);
+  final Color kTimeNightColor = Color.fromRGBO(249, 236, 183, 0.4);
 
   // Images
   Image kCloud1Image;
@@ -165,18 +165,20 @@ class _BeachClockState extends State<BeachClock> with SingleTickerProviderStateM
     stack.add(Positioned(left: w * 0.05 * a, top: h * 0.4 * a,  child: ClipRect(child: kCloud3Image)));
 
 
+    // HORIZON
+    stack.add(Positioned(top: horizonY, left: 0.0, width: w, child: kDayHorizonImage));
+
     // TIME TEXT
     final time =  DateFormat('h:mm').format(_dateTime);
-    final fontSize = h * 0.7;
+    final fontSize = h * 0.74;
     final timeStyle = TextStyle(
       color: kTimeDayColor,
       fontFamily: 'VAGRoundedLTCYRW10-Black',
       fontSize: fontSize,
+      decoration: TextDecoration.none // LOL, by default Flutter text has 2 yellow underlines!?!?
     );
     stack.add(Center(child: Text(time, style: timeStyle)));
 
-    // HORIZON
-    stack.add(Positioned(top: horizonY, left: 0.0, width: w, child: kDayHorizonImage));
 
     stack.add(Positioned(left: w * 0.01 * a, top: h * 0.6 * a, child: ClipRect( child: kWave1Image)));
     stack.add(Positioned(left: w * 0.05 * a, top: h * 0.7 * a, child: ClipRect( child: kWave2Image)));
