@@ -1,0 +1,42 @@
+name: beach_clock
+description: A clock on the beach.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_clock_helper:
+    path: ../flutter_clock_helper
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/blue_bg.png
+    - assets/images/cloud1.png
+    - assets/images/cloud2.png
+    - assets/images/cloud3.png
+    - assets/images/cloud4.png
+    - assets/images/cloud5.png
+    - assets/images/cloud6.png
+    - assets/images/day_horizon.png
+    - assets/images/moon.png
+    - assets/images/night_horizon.png
+    - assets/images/night_sky.png
+    - assets/images/reflection.png
+    - assets/images/sun_yellow.png
+    - assets/images/sun.png
+    - assets/images/wave1.png
+    - assets/images/wave2.png
+    - assets/images/wave3.png
+  fonts:
+    - family: VAGRoundedLTCYRW10-Black
+      fonts:
+        - asset: assets/fonts/VAGRounded.ttf
