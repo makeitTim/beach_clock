@@ -5,14 +5,8 @@
 //
 
 import 'dart:async';
-import 'package:flutter/services.dart';   //for set pref orientation
-import 'package:flutter/widgets.dart';    // for mediaQuery to get screen size
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:vector_math/vector_math_64.dart' show radians;
-import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'utility.dart';
 
@@ -31,32 +25,37 @@ class _BeachClockState extends State<BeachClock> with SingleTickerProviderStateM
   DateTime _dateTime = DateTime.now();
   Timer _timer;
 
+  // used for fast time. note it's based on frames not time.
+  bool _isDemo = true;
+  int _demoTime = 0;
+
   // Color constants
   final Color kSkyColor = Color.fromRGBO(80, 163, 217, 1.0);
   final Color kSunColor = Color.fromRGBO(255, 221, 21, 1.0);
   final Color kCloudRedColor = Color.fromRGBO(233, 65, 60, 1.0);
   final Color kPalmsDayColor = Color.fromRGBO(38, 34, 97, 1.0);
   final Color kPalmsNightColor = Color.fromRGBO(48, 32, 53, 1.0);
-  final Color kTimeDayColor = Color.fromRGBO(199, 255, 217, 0.4);
-  final Color kTimeNightColor = Color.fromRGBO(249, 236, 183, 0.4);
+  final Color kTimeDayColor = Color.fromRGBO(199, 255, 217, 0.5);
+  final Color kTimeNightColor = Color.fromRGBO(249, 236, 183, 0.5);
 
   // Images
-  Image kCloud1Image;
-  Image kCloud2Image;
-  Image kCloud3Image;
-  Image kCloud4Image;
-  Image kCloud5Image;
-  Image kCloud6Image;
-  Image kDayHorizonImage;
-  Image kMoonImage;
-  Image kNightHorizonImage;
-  Image kNightSkyImage;
-  Image kPalmsImage;
-  Image kReflectionImage;
-  Image kSunImage;
-  Image kWave1Image;
-  Image kWave2Image;
-  Image kWave3Image;
+  //Image _cloud1Image;
+  //Image _cloud2Image;
+  //Image _cloud3Image;
+  //Image _cloud4Image;
+  //Image _cloud5Image;
+  //Image _cloud6Image;
+  Image _dayHorizonImage;
+  Image _dayPalmsImage;
+  //Image _moonImage;
+  Image _nightHorizonImage;
+  Image _nightPalmsImage;
+  Image _nightSkyImage;
+  //Image _reflectionImage;
+  //Image _sunImage;
+  Image _wave1Image;
+  Image _wave2Image;
+  Image _wave3Image;
 
   @override
   void initState() {
@@ -64,34 +63,36 @@ class _BeachClockState extends State<BeachClock> with SingleTickerProviderStateM
     super.initState();
     _updateTime();
 
-    kCloud1Image = Image(image: AssetImage('assets/images/cloud1.png'));
-    kCloud2Image = Image(image: AssetImage('assets/images/cloud2.png'));
-    kCloud3Image = Image(image: AssetImage('assets/images/cloud3.png'));
-    kCloud4Image = Image(image: AssetImage('assets/images/cloud4.png'));
-    kCloud5Image = Image(image: AssetImage('assets/images/cloud5.png'));
-    kCloud6Image = Image(image: AssetImage('assets/images/cloud6.png'));
-    kDayHorizonImage = Image(image: AssetImage('assets/images/day_horizon.png'));
-    kMoonImage = Image(image: AssetImage('assets/images/moon.png'));
-    kNightHorizonImage = Image(image: AssetImage('assets/images/night_horizon.png'));
-    kNightSkyImage = Image(image: AssetImage('assets/images/night_sky.png'));
-    kPalmsImage = Image(image: AssetImage('assets/images/palms.png'));
-    kReflectionImage = Image(image: AssetImage('assets/images/reflection.png'));
-    kSunImage = Image(image: AssetImage('assets/images/sun.png'));
-    kWave1Image = Image(image: AssetImage('assets/images/wave1.png'));
-    kWave2Image = Image(image: AssetImage('assets/images/wave2.png'));
-    kWave3Image = Image(image: AssetImage('assets/images/wave3.png'));
+    //_cloud1Image = Image(image: AssetImage('assets/images/cloud1.png'));
+    //_cloud2Image = Image(image: AssetImage('assets/images/cloud2.png'));
+    //_cloud3Image = Image(image: AssetImage('assets/images/cloud3.png'));
+    //_cloud4Image = Image(image: AssetImage('assets/images/cloud4.png'));
+    //_cloud5Image = Image(image: AssetImage('assets/images/cloud5.png'));
+    //_cloud6Image = Image(image: AssetImage('assets/images/cloud6.png'));
+    _dayHorizonImage = Image(image: AssetImage('assets/images/day_horizon.png'));
+    _dayPalmsImage = Image(image: AssetImage('assets/images/day_palms.png'));
+    //_moonImage = Image(image: AssetImage('assets/images/moon.png'));
+    _nightHorizonImage = Image(image: AssetImage('assets/images/night_horizon.png'));
+    _nightPalmsImage = Image(image: AssetImage('assets/images/night_palms.png'));
+    _nightSkyImage = Image(image: AssetImage('assets/images/night_sky.png'));
+    //_reflectionImage = Image(image: AssetImage('assets/images/reflection.png'));
+    //_sunImage = Image(image: AssetImage('assets/images/sun.png'));
+    _wave1Image = Image(image: AssetImage('assets/images/wave1.png'));
+    _wave2Image = Image(image: AssetImage('assets/images/wave2.png'));
+    _wave3Image = Image(image: AssetImage('assets/images/wave3.png'));
 
     _animationController = AnimationController(
       value: 0.0,
       lowerBound : 0.0,
       upperBound: 1.0,
-      duration:  const Duration(minutes: 1), //within 1 minute come back multiple times (every 1/16 second)
+      duration:  const Duration(milliseconds: 1),
       vsync: this,
     );
     _animationController.addListener(() {
       setState((){}); //Note: does not go through updateTime() so _dateTime not set, so build uses value..
     });               // to decide what actions to perform
-    //_animationController.repeat(); //keep going
+    _animationController.repeat(); //keep going
+
   }
 
   @override
@@ -108,8 +109,7 @@ class _BeachClockState extends State<BeachClock> with SingleTickerProviderStateM
   void _updateTime() {
     setState(() {
       _dateTime = DateTime.now();
-      // Update once per minute. If you want to update every second, use the
-      // code after these 6 lines.
+      // Update once per minute.
       _timer = Timer(
         Duration(minutes: 1) -
             Duration(seconds: _dateTime.second) -
@@ -117,26 +117,19 @@ class _BeachClockState extends State<BeachClock> with SingleTickerProviderStateM
         _updateTime,
       );
 
-      // Update once per second, but make sure to do it at the beginning of each
-      // new second, so that the clock is accurate.
-      // _timer = Timer(
-      //   Duration(seconds: 1) - Duration(milliseconds: _dateTime.millisecond),
-      //   _updateTime,
-      // );
-
     });
 
     // Had to null check this for some reason.
     if (_animationController != null) {
-      // keep animation controller in sync with teh timer, so eg Value = 0.016666 = 1 second
-      _animationController.value = (_dateTime.second + (_dateTime.millisecond/1000))/60.0;
+      // keep animation controller in sync with the timer, so eg Value = 0.016666 = 1 second
+      _animationController.value = (_dateTime.second + (_dateTime.millisecond/1000)) / 60.0;
       _animationController.repeat();
     }
   }
 
   // --------------------------------------------------------------------------------------
 
-  /// The big build method.
+  /// The big build method. I rather DISLIKE methods much large than a screen height.
   @override
   Widget build(BuildContext context) {
     // I guess I'm doing this again. I really wanted this component to be given it's
@@ -153,42 +146,176 @@ class _BeachClockState extends State<BeachClock> with SingleTickerProviderStateM
     double g = w / 25.0;
     double horizonY = g * 9;
 
+    // time values.
+    int hour;
+    int min;
+    String timeString;
+    if (_isDemo) {
+      // EXTRA FAST TIME FOR TESTING!!!
+      _demoTime += 1;
+      min = _demoTime % 1440; // 1440 min in a day
+      hour = (min / 60.0).floor();
+      min = min % 60;
+      int hourTwelve = (hour % 12 == 0) ? 12 : hour % 12;
+      timeString = hourTwelve.toString() + ':' + min.toString().padLeft(2, '0');
+    } else {
+      // ACTUAL TIME
+      hour = _dateTime.hour; // will be 24-hour format, ie 00 to 23
+      min = _dateTime.minute;
+      timeString = DateFormat('h:mm').format(_dateTime);
+    }
 
+    // Assuming 6-8 it transitions from day to night
+    bool isDay = (hour >= 6 && hour < 20);
+    bool isNight = (hour >= 18 || hour < 8);
+
+    double dayNightTrans = 1.0;
+    if (isDay && isNight) {
+      // draw transition. over 2 hours
+      dayNightTrans = min / 120.0;
+      if (hour == 7 || hour == 19) { // second hour
+        dayNightTrans += 0.5;
+      }
+      if (hour < 12) { // invert in morning
+        dayNightTrans = 1.0 - dayNightTrans;
+      }
+      //print('$hour : $min  d:$isDay  n:$isNight    dayNightTrans $dayNightTrans');
+    }
+
+    // stack of elements to draw
     List<Widget> stack = [];
+
+    // SKY
+    if (isNight) {
+      if (dayNightTrans < 1.0 && dayNightTrans >= 0.0) {
+        stack.add(Positioned(top: 0.0, left: 0.0, width: w, child:
+          Opacity(opacity: dayNightTrans, child: _nightSkyImage)
+        ));
+
+      } else {
+        stack.add(Positioned(top: 0.0, left: 0.0, width: w, child: _nightSkyImage));
+      }
+    }
 
     // sun image is 138 x 138, and needs to be colored
     //Image sunImage = Image
     //stack.add(Positioned(top: horizonY, left: 0.0, width: (138.0 / 800.0) * w, child: sunImage));
 
-    stack.add(Positioned(left: w * 0.01 * a, top: h * 0.01 * a, child: ClipRect(child: kCloud1Image)));
-    stack.add(Positioned(left: w * 0.02 * a, top: h * 0.3 * a,  child: ClipRect(child: kCloud2Image)));
-    stack.add(Positioned(left: w * 0.05 * a, top: h * 0.4 * a,  child: ClipRect(child: kCloud3Image)));
+    // CLOUDS
+    //stack.add(Positioned(left: w * 0.01 * a, top: h * 0.01 * a, child: ClipRect(child: _cloud1Image)));
+    //stack.add(Positioned(left: w * 0.02 * a, top: h * 0.3 * a,  child: ClipRect(child: _cloud2Image)));
+    //stack.add(Positioned(left: w * 0.05 * a, top: h * 0.4 * a,  child: ClipRect(child: _cloud3Image)));
 
 
     // HORIZON
-    stack.add(Positioned(top: horizonY, left: 0.0, width: w, child: kDayHorizonImage));
+
+    if (isDay) {
+      stack.add(Positioned(top: horizonY, left: 0.0, width: w, child: _dayHorizonImage));
+    }
+    if (isNight) {
+      if (dayNightTrans < 1.0 && dayNightTrans >= 0.0) {
+        stack.add(Positioned(top: horizonY, left: 0.0, width: w, child:
+          Opacity(opacity: dayNightTrans, child: _nightHorizonImage)
+        ));
+
+      } else {
+        stack.add(Positioned(top: horizonY, left: 0.0, width: w, child: _nightHorizonImage));
+      }
+    }
+
+
+
+    // WAVES
+    double waveXstart = w * -0.2;
+    double waveXrange = w * 0.2;
+    double waveYstart = h * 0.6;
+    double waveYrange = h * 0.1;
+
+    // HATE THIS. This should be a seperate method run thrice.
+    // Each animation element should be a component.
+
+    if (min % 3 != 0) {
+      double wave1w = w * (827.0 / 800.0);
+      double wave1A = a <= 0.5 ? a : 1.0 - a;
+      double wave1X = waveXstart + (waveXrange * a);
+      double wave1Y = waveYstart + (waveYrange * a);
+
+      stack.add(Positioned(left: wave1X, top: wave1Y, width: wave1w, child: Opacity(opacity: wave1A, child: _wave1Image)));
+    }
+
+    if (min % 3 != 1) {
+      double a2 = a + 0.333;
+      if (a2 > 1.0) { a2 -= 1.0; }
+      double wave2w = w * (827.0 / 800.0);
+      double wave2A = a2 <= 0.5 ? a2 : 1.0 - a2;
+      double wave2X = waveXstart + (waveXrange * a2);
+      double wave2Y = waveYstart + (waveYrange * a2);
+
+      stack.add(Positioned(left: wave2X, top: wave2Y, width: wave2w, child: Opacity(opacity: wave2A, child: _wave2Image)));
+    }
+
+    if (min % 3 != 2) {
+      double a3 = a + 0.667;
+      if (a3 > 1.0) { a3 -= 1.0; }
+      double wave3w = w * (827.0 / 800.0);
+      double wave3A = a3 <= 0.5 ? a3 : 1.0 - a3;
+      double wave3X = waveXstart + (waveXrange * a3);
+      double wave3Y = waveYstart + (waveYrange * a3);
+
+      stack.add(Positioned(left: wave3X, top: wave3Y, width: wave3w, child: Opacity(opacity: wave3A, child: _wave3Image)));
+    }
+
+
 
     // TIME TEXT
-    final time =  DateFormat('h:mm').format(_dateTime);
-    final fontSize = h * 0.74;
+    Color textColor = kTimeDayColor;
+    if (isNight) {
+      if (dayNightTrans < 1.0 && dayNightTrans >= 0.0) {
+        textColor = Color.lerp(kTimeDayColor, kTimeNightColor, dayNightTrans);
+      } else {
+        textColor = kTimeNightColor;
+      }
+    }
+
+    final fontSize = h * 0.8;
     final timeStyle = TextStyle(
-      color: kTimeDayColor,
+      color: textColor,
       fontFamily: 'VAGRoundedLTCYRW10-Black',
       fontSize: fontSize,
       decoration: TextDecoration.none // LOL, by default Flutter text has 2 yellow underlines!?!?
     );
-    stack.add(Center(child: Text(time, style: timeStyle)));
+    //stack.add(Center(child: Text(timeString, style: timeStyle)));
+    Text timeText = Text(timeString, style: timeStyle);
+    stack.add(Center(child:
+      FittedBox(fit: BoxFit.fitWidth, alignment: Alignment.center, child: timeText))
+    );
+
+    // PALM TREES
+    if (isDay) {
+      stack.add(Positioned(left: 0.0, top: 0.0, width: w, height: h, child: _dayPalmsImage));
+    }
+    if (isNight) {
+      if (dayNightTrans < 1.0 && dayNightTrans >= 0.0) {
+        stack.add(Positioned(top: 0.0, left: 0.0, width: w, child:
+          Opacity(opacity: dayNightTrans, child: _nightPalmsImage)
+        ));
+
+      } else {
+        stack.add(Positioned(left: 0.0, top: 0.0, width: w, child: _nightPalmsImage));
+      }
+    }
 
 
-    stack.add(Positioned(left: w * 0.01 * a, top: h * 0.6 * a, child: ClipRect( child: kWave1Image)));
-    stack.add(Positioned(left: w * 0.05 * a, top: h * 0.7 * a, child: ClipRect( child: kWave2Image)));
-    stack.add(Positioned(left: w * 0.05 * a, top: h * 0.4 * a, child: ClipRect( child: kWave3Image)));
-
-    return Container(
-      color: kSkyColor,
-      child: Stack(
-        children: stack,
-      )
+    return GestureDetector(
+      onTap: () {
+        _isDemo = !_isDemo;
+      },
+      child: Container(
+        color: kSkyColor,
+        child: Stack(
+          children: stack,
+        )
+      ),
     );
 
   }

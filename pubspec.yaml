@@ -27,8 +27,10 @@ flutter:
     - assets/images/cloud5.png
     - assets/images/cloud6.png
     - assets/images/day_horizon.png
+    - assets/images/day_palms.png
     - assets/images/moon.png
     - assets/images/night_horizon.png
+    - assets/images/night_palms.png
     - assets/images/night_sky.png
     - assets/images/reflection.png
     - assets/images/sun_yellow.png
